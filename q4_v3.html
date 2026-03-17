@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' https://fonts.googleapis.com https://fonts.gstatic.com https://api.anthropic.com; connect-src https://api.anthropic.com;">
+<title>Q4 Næringseiendom — AI Verdivurdering</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --navy: #0d2137;
+  --navy-mid: #1a3a5c;
+  --navy-light: #2a5082;
+  --gold: #c9a84c;
+  --gold-light: #e8c97a;
+  --cream: #f8f5ef;
+  --cream-dark: #ede8de;
+  --text: #0d2137;
+  --text-muted: #5a6d7e;
+  --text-light: #8fa3b4;
+  --border: rgba(13,33,55,0.12);
+  --border-strong: rgba(13,33,55,0.22);
+  --success-bg: #e8f5ee;
+  --success-text: #1a5c35;
+  --warn-bg: #fff4e0;
+  --warn-text: #7a4a00;
+  --danger-bg: #fdeaea;
+  --danger-text: #7a1a1a;
+  --info-bg: #e8f0fb;
+  --info-text: #1a3a7c;
+  --radius: 4px;
+  --radius-lg: 8px;
+  --shadow: 0 2px 12px rgba(13,33,55,0.08);
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: "DM Sans", sans-serif; background: var(--cream); color: var(--text); min-height: 100vh; font-size: 15px; line-height: 1.6; }
+
+.site-header { background: var(--navy); padding: 0 2rem; display: flex; align-items: center; justify-content: space-between; height: 60px; position: sticky; top: 0; z-index: 100; border-bottom: 1px solid rgba(201,168,76,0.25); }
+.logo { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+.logo-mark { width: 36px; height: 36px; background: var(--gold); border-radius: 2px; display: flex; align-items: center; justify-content: center; font-family: "DM Serif Display", serif; font-size: 17px; color: var(--navy); }
+.logo-name { font-size: 14px; font-weight: 500; color: white; display: block; }
+.logo-tagline { font-size: 10px; color: rgba(255,255,255,0.4); letter-spacing: .06em; text-transform: uppercase; display: block; }
+.header-badge { background: rgba(201,168,76,0.15); border: 1px solid rgba(201,168,76,0.35); color: var(--gold-light); font-size: 11px; padding: 4px 11px; border-radius: 2px; letter-spacing: .07em; text-transform: uppercase; }
+
+.hero { background: var(--navy); padding: 2.5rem 2rem 3rem; }
+.hero-inner { max-width: 920px; margin: 0 auto; }
+.hero-eyebrow { font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--gold); margin-bottom: .6rem; }
+.hero h1 { font-family: "DM Serif Display", serif; font-size: 36px; color: white; line-height: 1.15; font-weight: 400; margin-bottom: .5rem; }
+.hero h1 em { color: var(--gold-light); font-style: italic; }
+.hero-desc { color: rgba(255,255,255,0.5); font-size: 14px; max-width: 480px; font-weight: 300; }
+
+.steps-outer { background: white; border-bottom: 1px solid var(--border); position: sticky; top: 60px; z-index: 90; }
+.steps { max-width: 920px; margin: 0 auto; display: flex; overflow-x: auto; }
+.step { flex: 1; min-width: 100px; padding: 11px 8px; text-align: center; cursor: pointer; border-bottom: 3px solid transparent; white-space: nowrap; }
+.step-num { font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: var(--text-light); display: block; margin-bottom: 2px; }
+.step-label { font-size: 12px; font-weight: 500; color: var(--text-muted); }
+.step.active { border-bottom-color: var(--gold); }
+.step.active .step-label { color: var(--navy); }
+.step.done .step-num::after { content: " ✓"; color: var(--gold); }
+.step:hover:not(.active) { background: var(--cream); }
+
+.main { max-width: 920px; margin: 0 auto; padding: 2rem 2rem 3rem; }
+.panel { display: none; }
+.panel.active { display: block; }
+
+.card { background: white; border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.5rem; margin-bottom: 1rem; box-shadow: var(--shadow); }
+.card-title { font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--text-light); margin-bottom: 1rem; padding-bottom: 9px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px; }
+.card-title::before { content: ""; display: block; width: 3px; height: 11px; background: var(--gold); border-radius: 2px; }
+
+.g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
+.g3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 14px; }
+.g4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 14px; }
+@media (max-width: 640px) { .g2, .g3, .g4 { grid-template-columns: 1fr; } }
+.field { display: flex; flex-direction: column; gap: 5px; }
+.field label { font-size: 12px; font-weight: 500; color: var(--text-muted); }
+.field input, .field select { height: 38px; padding: 0 11px; border: 1px solid var(--border-strong); border-radius: var(--radius); font-family: "DM Sans", sans-serif; font-size: 14px; color: var(--text); background: white; width: 100%; }
+.field input:focus, .field select:focus { outline: none; border-color: var(--navy-light); box-shadow: 0 0 0 3px rgba(26,58,92,0.1); }
+
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; border: none; border-radius: var(--radius); font-family: "DM Sans", sans-serif; font-size: 14px; font-weight: 500; cursor: pointer; }
+.btn-primary { background: var(--navy); color: white; padding: 0 22px; height: 42px; }
+.btn-primary:hover { background: var(--navy-light); }
+.btn-secondary { background: white; color: var(--text); border: 1px solid var(--border-strong); padding: 0 16px; height: 36px; }
+.btn-secondary:hover { background: var(--cream); }
+.btn-gold { background: var(--gold); color: var(--navy); padding: 0 22px; height: 42px; font-weight: 600; }
+.btn-gold:hover { background: var(--gold-light); }
+.btn-full { width: 100%; }
+.btn-nav { display: flex; gap: 10px; justify-content: flex-end; margin-top: 1.25rem; }
+
+.info-box { background: var(--info-bg); border-left: 3px solid var(--navy-mid); border-radius: 0 var(--radius) var(--radius) 0; padding: 11px 15px; font-size: 13px; color: var(--text-muted); margin-bottom: 1rem; line-height: 1.5; }
+
+.upload-zone { border: 2px dashed var(--border-strong); border-radius: var(--radius-lg); padding: 2rem; text-align: center; cursor: pointer; background: var(--cream); transition: border-color .2s, background .2s; }
+.upload-zone:hover { border-color: var(--navy-mid); background: var(--info-bg); }
+.upload-icon { font-size: 26px; margin-bottom: .4rem; }
+.upload-text { font-size: 14px; font-weight: 500; color: var(--text-muted); margin-bottom: 3px; }
+.upload-sub { font-size: 12px; color: var(--text-light); }
+.file-item { display: flex; align-items: center; gap: 10px; padding: 8px 12px; background: white; border: 1px solid var(--border); border-radius: var(--radius); margin-top: 8px; font-size: 13px; }
+.file-badge { background: var(--danger-bg); color: var(--danger-text); font-size: 10px; font-weight: 600; padding: 3px 7px; border-radius: 3px; flex-shrink: 0; }
+.file-name { flex: 1; font-weight: 500; }
+.file-size { color: var(--text-light); font-size: 11px; }
+.file-rm { background: none; border: none; color: var(--text-light); cursor: pointer; font-size: 18px; line-height: 1; padding: 0 2px; }
+
+.ai-box { border-radius: var(--radius-lg); overflow: hidden; margin-bottom: 1rem; }
+.ai-box-header { background: var(--navy); padding: 12px 16px; display: flex; align-items: center; gap: 10px; }
+.ai-box-header h3 { font-size: 14px; font-weight: 500; color: white; margin: 0; }
+.ai-badge { background: rgba(201,168,76,0.25); color: var(--gold-light); font-size: 10px; letter-spacing: .08em; text-transform: uppercase; padding: 3px 8px; border-radius: 2px; }
+.ai-box-body { background: white; border: 1px solid var(--border); border-top: none; padding: 1.25rem; }
+.range-cards { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 1rem; }
+.rc { border-radius: var(--radius); padding: 13px; text-align: center; }
+.rc-low { background: var(--danger-bg); }
+.rc-mid { background: var(--success-bg); }
+.rc-high { background: var(--info-bg); }
+.rc-label { font-size: 10px; text-transform: uppercase; letter-spacing: .08em; margin-bottom: 4px; }
+.rc-low .rc-label { color: var(--danger-text); }
+.rc-mid .rc-label { color: var(--success-text); }
+.rc-high .rc-label { color: var(--info-text); }
+.rc-val { font-size: 22px; font-weight: 600; }
+.rc-low .rc-val { color: var(--danger-text); }
+.rc-mid .rc-val { color: var(--success-text); }
+.rc-high .rc-val { color: var(--info-text); }
+.rc-unit { font-size: 11px; margin-top: 2px; }
+.rc-low .rc-unit { color: var(--danger-text); }
+.rc-mid .rc-unit { color: var(--success-text); }
+.rc-high .rc-unit { color: var(--info-text); }
+.ai-reasoning { font-size: 13px; color: var(--text-muted); line-height: 1.6; padding: 11px; background: var(--cream); border-radius: var(--radius); }
+.use-btns { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+
+.result-hero { background: var(--navy); border-radius: var(--radius-lg); padding: 1.5rem; margin-bottom: 1rem; }
+.result-eyebrow { font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: rgba(255,255,255,0.45); margin-bottom: 4px; }
+.result-val { font-family: "DM Serif Display", serif; font-size: 38px; color: white; line-height: 1; margin-bottom: 4px; }
+.result-sub { font-size: 13px; color: rgba(255,255,255,0.5); }
+.metrics3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 1rem; }
+.mc { background: white; border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 13px; }
+.mc-label { font-size: 11px; text-transform: uppercase; letter-spacing: .07em; color: var(--text-light); margin-bottom: 5px; }
+.mc-val { font-size: 19px; font-weight: 500; }
+
+.sens-wrap { overflow-x: auto; }
+.sens-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.sens-table th, .sens-table td { padding: 7px 10px; border: 1px solid var(--border); text-align: center; }
+.sens-table th { background: var(--cream); font-weight: 500; font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--text-muted); }
+.s-hi { background: var(--success-bg); color: var(--success-text); font-weight: 500; }
+.s-lo { background: var(--danger-bg); color: var(--danger-text); font-weight: 500; }
+.s-md { background: white; }
+
+.comp-hdr { display: grid; grid-template-columns: 2.5fr 1fr 1fr 1fr 36px; gap: 8px; margin-bottom: 6px; }
+.comp-hdr span { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--text-light); font-weight: 500; }
+.comp-row { display: grid; grid-template-columns: 2.5fr 1fr 1fr 1fr 36px; gap: 8px; align-items: center; margin-bottom: 7px; }
+.comp-row input { height: 34px; padding: 0 9px; border: 1px solid var(--border-strong); border-radius: var(--radius); font-family: "DM Sans", sans-serif; font-size: 13px; color: var(--text); background: white; width: 100%; }
+.btn-rm { width: 36px; height: 36px; border: 1px solid var(--border-strong); border-radius: var(--radius); background: white; cursor: pointer; font-size: 16px; color: var(--text-muted); display: flex; align-items: center; justify-content: center; }
+.btn-rm:hover { background: var(--danger-bg); color: var(--danger-text); border-color: transparent; }
+
+.dash-hero { background: var(--navy); border-radius: var(--radius-lg); padding: 2rem; margin-bottom: 1rem; }
+.dash-label { font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: var(--gold); margin-bottom: 6px; }
+.dash-val { font-family: "DM Serif Display", serif; font-size: 48px; color: white; line-height: 1; margin-bottom: 5px; }
+.dash-range { font-size: 13px; color: rgba(255,255,255,0.45); }
+.dash-range strong { color: rgba(255,255,255,0.7); }
+.kpi4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 1rem; }
+.kpi { background: white; border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 13px; }
+.kpi-label { font-size: 10px; text-transform: uppercase; letter-spacing: .07em; color: var(--text-light); margin-bottom: 4px; }
+.kpi-val { font-size: 19px; font-weight: 600; }
+.kpi-sub { font-size: 11px; color: var(--text-light); margin-top: 2px; }
+.dash2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
+.comp-sum-hdr { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 8px; }
+.comp-sum-hdr span { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--text-light); font-weight: 500; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
+.comp-sum-row { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 8px; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+.comp-sum-row:last-child { border-bottom: none; }
+
+.wrow { display: grid; grid-template-columns: 160px 1fr 50px; align-items: center; gap: 14px; margin-bottom: 12px; }
+.wrow label { font-size: 13px; font-weight: 500; }
+.wrow input[type=range] { -webkit-appearance: none; appearance: none; height: 4px; background: var(--border-strong); border-radius: 2px; cursor: pointer; width: 100%; }
+.wrow input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; background: var(--navy); border-radius: 50%; border: 2px solid white; box-shadow: 0 1px 4px rgba(0,0,0,0.2); cursor: pointer; }
+.wpct { font-size: 14px; font-weight: 600; color: var(--navy-mid); text-align: right; }
+
+.report-card { background: white; border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 2rem; }
+.report-content { font-size: 14px; line-height: 1.8; color: var(--text); }
+.report-content h2 { font-family: "DM Serif Display", serif; font-size: 22px; font-weight: 400; color: var(--navy); margin: 1.5rem 0 .5rem; }
+.report-content h3 { font-size: 13px; font-weight: 600; color: var(--navy-mid); margin: 1.25rem 0 .4rem; text-transform: uppercase; letter-spacing: .05em; }
+.report-content p { margin-bottom: .75rem; }
+.report-content table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 13px; }
+.report-content td, .report-content th { padding: 8px 12px; border: 1px solid var(--border); text-align: left; }
+.report-content th { background: var(--cream); font-weight: 500; }
+
+.disclaimer { background: var(--warn-bg); border: 1px solid rgba(122,74,0,0.18); border-radius: var(--radius); padding: 11px 15px; font-size: 12px; color: var(--warn-text); line-height: 1.5; margin-bottom: 1rem; }
+
+@keyframes spin { to { transform: rotate(360deg); } }
+.spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin .7s linear infinite; }
+.spinner-gold { border-color: rgba(13,33,55,0.2); border-top-color: var(--navy); }
+</style>
+<script defer>
+
+var R = { yield: null, dcf: null, comp: null };
+var AI_DATA = { ll: null, lm: null, lh: null, yl: null, ym: null, yh: null, lr: "", yr: "" };
+var W = { yield: 50, dcf: 35, comp: 15 };
+var FILES = [];
+var COMPS = [
+  { name: "Vestfold Logistikksenter AS", areal: 6200, pris: 62, yld: 6.1 },
+  { name: "Grenland Distribusjon AS", areal: 4800, pris: 44, yld: 6.4 },
+  { name: "Larvik Næringspark", areal: 7000, pris: 74.5, yld: 5.8 }
+];
+var DONE = new Set([0]);
+
+function goTo(i) {
+  for (var j = 0; j < 7; j++) {
+    document.getElementById("p" + j).classList.remove("active");
+    var s = document.getElementById("s" + j);
+    s.classList.remove("active");
+    if (DONE.has(j) && j !== i) s.classList.add("done");
+    else s.classList.remove("done");
+  }
+  document.getElementById("p" + i).classList.add("active");
+  document.getElementById("s" + i).classList.add("active");
+  DONE.add(i);
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function nv(id) { return parseFloat(document.getElementById(id).value) || 0; }
+function sv(id) { return document.getElementById(id).value; }
+
+function fmt(v) {
+  if (v >= 1e9) return (v / 1e9).toFixed(2).replace(".", ",") + " mrd kr";
+  if (v >= 1e6) return (v / 1e6).toFixed(1).replace(".", ",") + " mill kr";
+  return Math.round(v).toLocaleString("nb-NO") + " kr";
+}
+function fmtM(v) { return (v / 1e6).toFixed(1).replace(".", ",") + " mill"; }
+
+function handleFiles(files) {
+  for (var i = 0; i < files.length; i++) FILES.push(files[i]);
+  renderFiles();
+}
+function renderFiles() {
+  var html = "";
+  FILES.forEach(function(f, i) {
+    html += "<div class=\"file-item\"><span class=\"file-badge\">PDF</span>";
+    html += "<span class=\"file-name\">" + f.name + "</span>";
+    html += "<span class=\"file-size\">" + Math.round(f.size / 1024) + " KB</span>";
+    html += "<button class=\"file-rm\" onclick=\"FILES.splice(" + i + ",1);renderFiles()\">×</button></div>";
+  });
+  document.getElementById("file-list").innerHTML = html;
+}
+
+async function runAI() {
+  var btn = document.getElementById("ai-btn");
+  btn.disabled = true;
+  btn.innerHTML = "<span class=\"spinner spinner-gold\"></span>&nbsp; Analyserer...";
+  var bta_l = nv("bta_lager"), bta_k = nv("bta_kontor");
+  var kommune = sv("kommune"), byggear = nv("byggear");
+  var alder = 2025 - byggear;
+  var energi = sv("energi"), sprinkler = sv("sprinkler");
+  var seg = sv("marked_segment"), kval = sv("leietaker_kval"), kontrakt = nv("kontrakt_ar");
+  var fileNote = FILES.length > 0
+    ? "Opplastede dokumenter: " + FILES.map(function(f) { return f.name; }).join(", ") + ". Disse inneholder sannsynligvis takstdata eller leiekontrakter."
+    : "Ingen dokumenter lastet opp.";
+
+  var prompt =
+    "Du er en erfaren næringseiendomsanalytiker spesialisert paa lager og logistikk i Vestfold og Telemark, Norge.\n\n" +
+    "Eiendomsdata:\n" +
+    "- Kommune: " + kommune + "\n" +
+    "- Lagerareal: " + bta_l + " m2, Kontorareal: " + bta_k + " m2\n" +
+    "- Byggeaar: " + byggear + " (alder ca. " + alder + " aar)\n" +
+    "- Takhoeyde: " + nv("takhoeyde") + " m, Energimerke: " + energi + ", Sprinkler: " + sprinkler + "\n" +
+    "- Segment: " + seg + ", Leietakerkvalitet: " + kval + ", Kontraktslengde: " + kontrakt + " aar\n" +
+    "- " + fileNote + "\n\n" +
+    "Estimer markedsleie og yield for 2024/2025. Svar KUN med JSON (ingen annen tekst):\n" +
+    "{\"leie_lav\":750,\"leie_mid\":900,\"leie_hoey\":1050,\"yield_lav\":5.5,\"yield_mid\":6.25,\"yield_hoey\":7.25,\"leie_reasoning\":\"...\",\"yield_reasoning\":\"...\"}";
+
+  try {
+    var res = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: 800, messages: [{ role: "user", content: prompt }] })
+    });
+    var data = await res.json();
+    var text = data.content.filter(function(b) { return b.type === "text"; }).map(function(b) { return b.text; }).join("");
+    var clean = text.replace(/```json|```/g, "").trim();
+    var p = JSON.parse(clean);
+    AI_DATA.ll = p.leie_lav; AI_DATA.lm = p.leie_mid; AI_DATA.lh = p.leie_høy;
+    AI_DATA.yl = p.yield_lav; AI_DATA.ym = p.yield_mid; AI_DATA.yh = p.yield_høy;
+    AI_DATA.lr = p.leie_reasoning; AI_DATA.yr = p.yield_reasoning;
+    document.getElementById("al-lav").textContent = p.leie_lav;
+    document.getElementById("al-mid").textContent = p.leie_mid;
+    document.getElementById("al-hoy").textContent = p.leie_høy;
+    document.getElementById("ay-lav").textContent = p.yield_lav + "%";
+    document.getElementById("ay-mid").textContent = p.yield_mid + "%";
+    document.getElementById("ay-hoy").textContent = p.yield_høy + "%";
+    document.getElementById("al-reason").textContent = p.leie_reasoning;
+    document.getElementById("ay-reason").textContent = p.yield_reasoning;
+    document.getElementById("ai-results").style.display = "block";
+  } catch(e) {
+    alert("Klarte ikke hente AI-estimat. Sjekk API-tilgang.");
+  }
+  btn.disabled = false;
+  btn.innerHTML = "<span>✦</span>&nbsp; Kjør ny estimering";
+}
+
+function useLeie(lvl) {
+  var val = lvl === "lav" ? AI_DATA.ll : (lvl === "mid" ? AI_DATA.lm : AI_DATA.lh);
+  if (val) document.getElementById("leie_lager").value = val;
+  goTo(2);
+}
+function useYield(lvl) {
+  var val = lvl === "lav" ? AI_DATA.yl : (lvl === "mid" ? AI_DATA.ym : AI_DATA.yh);
+  if (val) document.getElementById("yield_pct").value = val;
+  goTo(2);
+}
+
+function calcYield() {
+  var bl = nv("bta_lager"), bk = nv("bta_kontor"), bt = bl + bk;
+  var brutto = bl * nv("leie_lager") + bk * nv("leie_kontor");
+  var eff = brutto * (1 - nv("ledighet_y") / 100);
+  var kost = bt * (nv("eierkost") + nv("vedlikehold")) + eff * nv("forvaltning") / 100;
+  var netto = eff - kost;
+  var yv = nv("yield_pct") / 100;
+  var val = netto / yv;
+  R.yield = val;
+  document.getElementById("yield-result").style.display = "block";
+  document.getElementById("yr-val").textContent = fmt(val);
+  document.getElementById("yr-sub").textContent = "Netto leie: " + fmtM(netto) + " mill/år  ·  Yield: " + nv("yield_pct").toFixed(2) + "%";
+  document.getElementById("yr-brutto").textContent = fmtM(brutto) + " mill";
+  document.getElementById("yr-netto").textContent = fmtM(netto) + " mill";
+  document.getElementById("yr-ppm").textContent = Math.round(val / bt).toLocaleString("nb-NO") + " kr";
+  var ys = [5.0, 5.5, 6.0, 6.5, 7.0], ls = [0.90, 0.95, 1.00, 1.05, 1.10];
+  var h = "<table class=\"sens-table\"><tr><th>Yield \\ Leiefaktor</th>";
+  ls.forEach(function(l) { h += "<th>" + Math.round(l * 100) + "%</th>"; });
+  h += "</tr>";
+  ys.forEach(function(y) {
+    h += "<tr><td><strong>" + y.toFixed(1) + "%</strong></td>";
+    ls.forEach(function(l) {
+      var vv = (netto * l) / (y / 100);
+      var c = vv > val * 1.05 ? "s-hi" : (vv < val * 0.95 ? "s-lo" : "s-md");
+      h += "<td class=\"" + c + "\">" + fmtM(vv) + "</td>";
+    });
+    h += "</tr>";
+  });
+  h += "</table>";
+  document.getElementById("sens-yield").innerHTML = h;
+}
+
+function calcDCF() {
+  var n0 = nv("dcf_netto"), kpi = nv("kpi") / 100, r = nv("disk_rente") / 100;
+  var ar = Math.round(nv("analyse_ar")), ey = nv("exit_yield") / 100;
+  var lrisk = 1 - nv("dcf_ledig") / 100;
+  var inv = nv("inv_kost"), cap5 = nv("capex5");
+  var pvcf = 0, cf = n0;
+  for (var i = 1; i <= ar; i++) {
+    cf *= (1 + kpi);
+    var adj = cf * lrisk - (i === 5 ? cap5 : 0);
+    pvcf += adj / Math.pow(1 + r, i);
+  }
+  var en = n0 * Math.pow(1 + kpi, ar + 1) * lrisk;
+  var ev = en / ey;
+  var pvexit = ev / Math.pow(1 + r, ar);
+  var total = pvcf + pvexit - inv;
+  R.dcf = total;
+  document.getElementById("dcf-result").style.display = "block";
+  document.getElementById("dr-val").textContent = fmt(total);
+  document.getElementById("dr-sub").textContent = "Analyseperiode: " + ar + " år  ·  Diskontering: " + nv("disk_rente").toFixed(2) + "%  ·  Exit yield: " + nv("exit_yield").toFixed(2) + "%";
+  document.getElementById("dr-pvcf").textContent = fmtM(pvcf) + " mill";
+  document.getElementById("dr-pvexit").textContent = fmtM(pvexit) + " mill";
+  document.getElementById("dr-impyield").textContent = (n0 / total * 100).toFixed(2) + "%";
+  var rates = [6.5, 7.0, 7.5, 8.0, 8.5], exits = [5.5, 6.0, 6.5, 7.0, 7.5];
+  var h = "<table class=\"sens-table\"><tr><th>Disk.rente \\ Exit yield</th>";
+  exits.forEach(function(e) { h += "<th>" + e.toFixed(1) + "%</th>"; });
+  h += "</tr>";
+  rates.forEach(function(rate) {
+    h += "<tr><td><strong>" + rate.toFixed(1) + "%</strong></td>";
+    exits.forEach(function(ex) {
+      var pv2 = 0, cf2 = n0;
+      for (var i = 1; i <= ar; i++) { cf2 *= (1 + kpi); pv2 += cf2 * lrisk / Math.pow(1 + rate / 100, i); }
+      var t2 = pv2 + (n0 * Math.pow(1 + kpi, ar + 1) * lrisk / (ex / 100)) / Math.pow(1 + rate / 100, ar) - inv;
+      var c = t2 > total * 1.05 ? "s-hi" : (t2 < total * 0.95 ? "s-lo" : "s-md");
+      h += "<td class=\"" + c + "\">" + fmtM(t2) + "</td>";
+    });
+    h += "</tr>";
+  });
+  h += "</table>";
+  document.getElementById("sens-dcf").innerHTML = h;
+}
+
+function renderComps() {
+  var h = "";
+  COMPS.forEach(function(c, i) {
+    h += "<div class=\"comp-row\">";
+    h += "<input type=\"text\" value=\"" + c.name + "\" onchange=\"COMPS[" + i + "].name=this.value\">";
+    h += "<input type=\"number\" value=\"" + c.areal + "\" onchange=\"COMPS[" + i + "].areal=parseFloat(this.value)||0\">";
+    h += "<input type=\"number\" value=\"" + c.pris + "\" step=\"0.5\" onchange=\"COMPS[" + i + "].pris=parseFloat(this.value)||0\">";
+    h += "<input type=\"number\" value=\"" + c.yld + "\" step=\"0.1\" onchange=\"COMPS[" + i + "].yld=parseFloat(this.value)||0\">";
+    h += "<button class=\"btn-rm\" onclick=\"COMPS.splice(" + i + ",1);renderComps()\">×</button></div>";
+  });
+  document.getElementById("comp-list").innerHTML = h;
+}
+function addComp() { COMPS.push({ name: "Ny eiendom", areal: 5000, pris: 50, yld: 6.0 }); renderComps(); }
+document.addEventListener("DOMContentLoaded", function() { renderComps(); });
+
+function calcComp() {
+  if (!COMPS.length) return;
+  var bt = nv("bta_lager") + nv("bta_kontor");
+  var ppms = COMPS.map(function(c) { return c.pris * 1e6 / c.areal; });
+  var ylds = COMPS.map(function(c) { return c.yld; }).sort(function(a, b) { return a - b; });
+  var avg = ppms.reduce(function(a, b) { return a + b; }, 0) / ppms.length;
+  var med = ylds[Math.floor(ylds.length / 2)];
+  var val = avg * bt;
+  R.comp = val;
+  document.getElementById("comp-result").style.display = "block";
+  document.getElementById("cr-val").textContent = fmt(val);
+  document.getElementById("cr-sub").textContent = "Basert på " + COMPS.length + " transaksjoner  ·  Gj.snitt: " + Math.round(avg).toLocaleString("nb-NO") + " kr/m²";
+  document.getElementById("cr-ppm").textContent = Math.round(avg).toLocaleString("nb-NO") + " kr";
+  document.getElementById("cr-yield").textContent = med.toFixed(1) + "%";
+  document.getElementById("cr-ant").textContent = COMPS.length;
+}
+
+function buildDash() {
+  var methods = [{ key: "yield", label: "Yield" }, { key: "dcf", label: "DCF" }, { key: "comp", label: "Komp." }];
+  var computed = methods.filter(function(m) { return R[m.key]; });
+  if (!computed.length) { document.getElementById("dash-empty").style.display = "block"; document.getElementById("dash-content").style.display = "none"; return; }
+  document.getElementById("dash-empty").style.display = "none";
+  document.getElementById("dash-content").style.display = "block";
+  var tw = computed.reduce(function(s, m) { return s + W[m.key]; }, 0) || 1;
+  var wval = computed.reduce(function(s, m) { return s + R[m.key] * W[m.key]; }, 0) / tw;
+  var vals = computed.map(function(m) { return R[m.key]; });
+  var lo = Math.min.apply(null, vals) * 0.95, hi = Math.max.apply(null, vals) * 1.05;
+  document.getElementById("dash-val").textContent = fmt(wval);
+  document.getElementById("dash-range").innerHTML = "Indikativt intervall: <strong>" + fmtM(lo) + " – " + fmtM(hi) + " mill kr</strong>";
+  document.getElementById("kpi-yield").textContent = R.yield ? fmtM(R.yield) + " mill" : "—";
+  document.getElementById("kpi-dcf").textContent = R.dcf ? fmtM(R.dcf) + " mill" : "—";
+  document.getElementById("kpi-comp").textContent = R.comp ? fmtM(R.comp) + " mill" : "—";
+  document.getElementById("kpi-ai-leie").textContent = AI_DATA.lm ? AI_DATA.lm + " kr/m²" : "—";
+  if (AI_DATA.lm) {
+    document.getElementById("dash-leie").innerHTML = "<div class=\"range-cards\"><div class=\"rc rc-low\"><div class=\"rc-label\">Lav</div><div class=\"rc-val\">" + AI_DATA.ll + "</div><div class=\"rc-unit\">kr/m²/år</div></div><div class=\"rc rc-mid\"><div class=\"rc-label\">Middels</div><div class=\"rc-val\">" + AI_DATA.lm + "</div><div class=\"rc-unit\">kr/m²/år</div></div><div class=\"rc rc-high\"><div class=\"rc-label\">Høy</div><div class=\"rc-val\">" + AI_DATA.lh + "</div><div class=\"rc-unit\">kr/m²/år</div></div></div><div class=\"ai-reasoning\">" + AI_DATA.lr + "</div>";
+  } else {
+    document.getElementById("dash-leie").innerHTML = "<p style=\"font-size:13px;color:var(--text-light)\">Kjør AI-estimering i steg 2.</p>";
+  }
+  if (AI_DATA.ym) {
+    document.getElementById("dash-yield-ai").innerHTML = "<div class=\"range-cards\"><div class=\"rc rc-high\"><div class=\"rc-label\">Lav</div><div class=\"rc-val\">" + AI_DATA.yl + "%</div></div><div class=\"rc rc-mid\"><div class=\"rc-label\">Middels</div><div class=\"rc-val\">" + AI_DATA.ym + "%</div></div><div class=\"rc rc-low\"><div class=\"rc-label\">Høy</div><div class=\"rc-val\">" + AI_DATA.yh + "%</div></div></div><div class=\"ai-reasoning\">" + AI_DATA.yr + "</div>";
+  } else {
+    document.getElementById("dash-yield-ai").innerHTML = "<p style=\"font-size:13px;color:var(--text-light)\">Kjør AI-estimering i steg 2.</p>";
+  }
+  if (COMPS.length) {
+    var ch = "<div class=\"comp-sum-hdr\"><span>Eiendom</span><span>Areal</span><span>Pris</span><span>Yield</span></div>";
+    COMPS.slice(0, 5).forEach(function(c) {
+      ch += "<div class=\"comp-sum-row\"><span style=\"font-weight:500\">" + c.name + "</span><span>" + c.areal.toLocaleString("nb-NO") + " m²</span><span>" + c.pris.toFixed(1) + " mill</span><span>" + c.yld.toFixed(1) + "%</span></div>";
+    });
+    document.getElementById("dash-comps").innerHTML = ch;
+  }
+  var wh = "";
+  computed.forEach(function(m) {
+    wh += "<div class=\"wrow\"><label>" + m.label + "</label><input type=\"range\" min=\"0\" max=\"100\" step=\"5\" value=\"" + W[m.key] + "\" oninput=\"W[\'" + m.key + "\']=parseInt(this.value);document.getElementById('wl-" + m.key + "').textContent=this.value+'%';buildSens()\"><span class=\"wpct\" id=\"wl-" + m.key + "\">" + W[m.key] + "%</span></div>";
+  });
+  document.getElementById("dash-weights").innerHTML = wh;
+  buildSens();
+}
+
+function buildSens() {
+  var methods = [{ key: "yield", label: "Yield" }, { key: "dcf", label: "DCF" }, { key: "comp", label: "Komp." }];
+  var computed = methods.filter(function(m) { return R[m.key]; });
+  if (!computed.length) return;
+  var tw = computed.reduce(function(s, m) { return s + W[m.key]; }, 0) || 1;
+  var base = computed.reduce(function(s, m) { return s + R[m.key] * W[m.key]; }, 0) / tw;
+  var shifts = [-15, -10, -5, 0, 5, 10, 15];
+  var h = "<table class=\"sens-table\"><tr><th>Metode \\ Verdiendring</th>";
+  shifts.forEach(function(s) { h += "<th>" + (s >= 0 ? "+" : "") + s + "%</th>"; });
+  h += "</tr>";
+  computed.forEach(function(m) {
+    h += "<tr><td><strong>" + m.label + "</strong></td>";
+    shifts.forEach(function(s) {
+      var adj = {};
+      methods.forEach(function(x) { adj[x.key] = R[x.key] || 0; });
+      adj[m.key] = R[m.key] * (1 + s / 100);
+      var t2 = computed.reduce(function(sm, x) { return sm + adj[x.key] * W[x.key]; }, 0) / tw;
+      var c = t2 > base * 1.03 ? "s-hi" : (t2 < base * 0.97 ? "s-lo" : "s-md");
+      h += "<td class=\"" + c + "\">" + fmtM(t2) + "</td>";
+    });
+    h += "</tr>";
+  });
+  h += "</table>";
+  document.getElementById("dash-sens").innerHTML = h;
+}
+
+async function genReport() {
+  var btn = document.getElementById("report-btn");
+  btn.disabled = true;
+  btn.innerHTML = "<span class=\"spinner spinner-gold\"></span>&nbsp; Genererer rapport...";
+  document.getElementById("report-out").style.display = "block";
+  document.getElementById("report-body").innerHTML = "<p style=\"color:var(--text-muted);font-style:italic\">Skriver rapport...</p>";
+  var methods = [{ key: "yield", label: "Yield-kapitalisering" }, { key: "dcf", label: "DCF-analyse" }, { key: "comp", label: "Sammenlignbare transaksjoner" }];
+  var computed = methods.filter(function(m) { return R[m.key]; });
+  var tw = computed.reduce(function(s, m) { return s + W[m.key]; }, 0) || 1;
+  var wval = computed.length ? computed.reduce(function(s, m) { return s + R[m.key] * W[m.key]; }, 0) / tw : null;
+  var prompt =
+    "Du er en erfaren næringseiendomsanalytiker i Q4 Næringseiendom. " +
+    "Skriv en profesjonell verdivurderingsrapport paa norsk for potensielle kunder.\n\n" +
+    "EIENDOMSDATA:\n" +
+    "- Adresse: " + (sv("adresse") || "Ikke oppgitt") + ", " + sv("kommune") + "\n" +
+    "- Lagerareal: " + nv("bta_lager") + " m2, Kontorareal: " + nv("bta_kontor") + " m2\n" +
+    "- Byggeaar: " + nv("byggear") + ", Takhoeyde: " + nv("takhoeyde") + " m, Energimerke: " + sv("energi") + "\n\n" +
+    "VERDSETTELSE:\n" +
+    computed.map(function(m) { return "- " + m.label + ": " + fmtM(R[m.key]) + " mill kr"; }).join("\n") + "\n" +
+    (wval ? "- Vektet verdi: " + fmtM(wval) + " mill kr\n" : "") +
+    "\nAI-ESTIMATER:\n" +
+    (AI_DATA.lm ? "Markedsleie: " + AI_DATA.ll + "-" + AI_DATA.lh + " kr/m2/aar (middels: " + AI_DATA.lm + ")\n" : "Ikke estimert\n") +
+    (AI_DATA.ym ? "Yield: " + AI_DATA.yl + "-" + AI_DATA.yh + "% (middels: " + AI_DATA.ym + "%)\n" : "") +
+    "\nKOMPARANTER:\n" +
+    COMPS.map(function(c) { return "- " + c.name + ": " + c.areal + " m2, " + c.pris + " mill kr, " + c.yld + "% yield"; }).join("\n") + "\n\n" +
+    "Skriv rapporten i HTML med h2, h3, p, table-tags. Inkluder: 1) Executive summary " +
+    "2) Eiendomsbeskrivelse 3) Markedsanalyse Vestfold/Telemark 4) Verdsettelse " +
+    "5) Sammenlignbare transaksjoner 6) Konklusjon. Maks 600 ord. Kun HTML-tags.";
+  try {
+    var res = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: 2000, messages: [{ role: "user", content: prompt }] })
+    });
+    var data = await res.json();
+    var html = data.content.filter(function(b) { return b.type === "text"; }).map(function(b) { return b.text; }).join("");
+    document.getElementById("report-body").innerHTML = html;
+  } catch(e) {
+    document.getElementById("report-body").innerHTML = "<p style=\"color:var(--danger-text)\">Klarte ikke generere rapport. Kontroller API-tilgang.</p>";
+  }
+  btn.disabled = false;
+  btn.innerHTML = "<span>✦</span>&nbsp; Regenerer rapport";
+}
+</script>
+</head>
+<body>
+
+<div id="start-banner" style="background:#1a5c35;color:white;text-align:center;padding:10px;font-size:13px;font-family:sans-serif">
+  ✅ Appen lastet korrekt. Steg 2 og 7 (AI) krever internettilgang og fungerer best via lokal server.
+  <button onclick="document.getElementById('start-banner').remove()" style="margin-left:12px;background:rgba(255,255,255,0.2);border:none;color:white;padding:3px 10px;border-radius:3px;cursor:pointer">×</button>
+</div>
+<header class="site-header">
+  <a class="logo" href="#">
+    <div class="logo-mark">Q4</div>
+    <div>
+      <span class="logo-name">Q4 Næringseiendom</span>
+      <span class="logo-tagline">Vestfold &amp; Telemark</span>
+    </div>
+  </a>
+  <div class="header-badge">AI Verdivurdering</div>
+</header>
+
+<section class="hero">
+  <div class="hero-inner">
+    <div class="hero-eyebrow">Lager &amp; Logistikkeiendom</div>
+    <h1>Intelligent verdivurdering.<br><em>Drevet av AI.</em></h1>
+    <p class="hero-desc">Last opp rapporter, få AI-estimerte markedsleier og yielder, og beregn markedsverdi med tre anerkjente metoder.</p>
+  </div>
+</section>
+
+<div class="steps-outer">
+  <div class="steps">
+    <div class="step active" onclick="goTo(0)" id="s0"><span class="step-num">Steg 1</span><span class="step-label">Eiendomsdata</span></div>
+    <div class="step" onclick="goTo(1)" id="s1"><span class="step-num">Steg 2</span><span class="step-label">AI-estimering</span></div>
+    <div class="step" onclick="goTo(2)" id="s2"><span class="step-num">Steg 3</span><span class="step-label">Yield-modell</span></div>
+    <div class="step" onclick="goTo(3)" id="s3"><span class="step-num">Steg 4</span><span class="step-label">DCF-modell</span></div>
+    <div class="step" onclick="goTo(4)" id="s4"><span class="step-num">Steg 5</span><span class="step-label">Sammenlignbare</span></div>
+    <div class="step" onclick="goTo(5)" id="s5"><span class="step-num">Steg 6</span><span class="step-label">Dashboard</span></div>
+    <div class="step" onclick="goTo(6)" id="s6"><span class="step-num">Steg 7</span><span class="step-label">Sammendrag</span></div>
+  </div>
+</div>
+
+<main class="main">
+
+<div class="panel active" id="p0">
+  <div class="card">
+    <div class="card-title">Grunnleggende eiendomsdata</div>
+    <div class="g2">
+      <div class="field"><label>Adresse / Eiendomsnavn</label><input type="text" id="adresse" placeholder="F.eks. Stokke Næringspark 12"></div>
+      <div class="field"><label>Kommune</label>
+        <select id="kommune">
+          <option>Sandefjord</option><option>Larvik</option><option>Tønsberg</option><option>Stokke</option><option>Horten</option><option>Skien</option><option>Porsgrunn</option><option>Grenland</option><option>Notodden</option><option>Annet</option>
+        </select>
+      </div>
+    </div>
+    <div class="g3">
+      <div class="field"><label>BTA lagerareal (m²)</label><input type="number" id="bta_lager" value="5000"></div>
+      <div class="field"><label>BTA kontorareal (m²)</label><input type="number" id="bta_kontor" value="500"></div>
+      <div class="field"><label>Tomteareal (m²)</label><input type="number" id="tomt" value="12000"></div>
+    </div>
+    <div class="g4">
+      <div class="field"><label>Byggeår</label><input type="number" id="byggear" value="2010"></div>
+      <div class="field"><label>Takhøyde (m)</label><input type="number" id="takhoeyde" value="10" step="0.5"></div>
+      <div class="field"><label>Lasteramper</label><input type="number" id="ramper" value="4"></div>
+      <div class="field"><label>Gulvlast (kN/m²)</label><input type="number" id="gulvlast" value="50"></div>
+    </div>
+    <div class="g3">
+      <div class="field"><label>Sprinkleranlegg</label><select id="sprinkler"><option value="ja">Ja</option><option value="nei">Nei</option></select></div>
+      <div class="field"><label>Energimerke</label><select id="energi"><option>A</option><option>B</option><option selected>C</option><option>D</option><option>E</option></select></div>
+      <div class="field"><label>Leietakerforhold</label><select id="leietaker_type"><option value="singel">Én leietaker</option><option value="multi">Flere leietakere</option><option value="ledig">Ledig</option></select></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">Last opp rapporter og dokumenter</div>
+    <div class="info-box">Last opp takstrapporter, tilstandsrapporter eller leiekontrakter. AI kombinerer dokumentdata med eiendomsinformasjonen i neste steg.</div>
+    <div class="upload-zone" id="upload-zone" onclick="document.getElementById('file-input').click()" ondragover="ev.preventDefault();this.style.borderColor='var(--navy-mid)'" ondragleave="this.style.borderColor=''" ondrop="ev.preventDefault();handleFiles(ev.dataTransfer.files)">
+      <input type="file" id="file-input" accept=".pdf,.docx,.doc,.txt" multiple style="display:none" onchange="handleFiles(this.files)">
+      <div class="upload-icon">📄</div>
+      <div class="upload-text">Dra og slipp filer hit, eller klikk for å velge</div>
+      <div class="upload-sub">Støtter PDF, Word og tekstfiler</div>
+    </div>
+    <div id="file-list"></div>
+  </div>
+  <div class="btn-nav">
+    <button class="btn btn-primary" onclick="goTo(1)">Neste: AI-estimering →</button>
+  </div>
+</div>
+
+<div class="panel" id="p1">
+  <div class="info-box">AI analyserer eiendomsdata og eventuelle opplastede rapporter for å estimere markedsleie og yield. Klikk "Bruk"-knappene for å overføre verdier til verdsettelsesmodellene.</div>
+  <div class="card">
+    <div class="card-title">Tilleggsparametere</div>
+    <div class="g3">
+      <div class="field"><label>Kontraktslengde (år)</label><input type="number" id="kontrakt_ar" value="5"></div>
+      <div class="field"><label>Leietakerkvalitet</label>
+        <select id="leietaker_kval">
+          <option value="premium">Premium (børsnotert/statlig)</option>
+          <option value="god" selected>God (solid SMB)</option>
+          <option value="normal">Normal</option>
+          <option value="svak">Svak / usikker</option>
+        </select>
+      </div>
+      <div class="field"><label>Markedssegment</label>
+        <select id="marked_segment">
+          <option value="logistikk" selected>Logistikk / distribusjon</option>
+          <option value="lager">Lager / oppbevaring</option>
+          <option value="cross">Cross-docking</option>
+          <option value="kold">Kjøl / frys</option>
+          <option value="combo">Kombinert lager/kontor</option>
+        </select>
+      </div>
+    </div>
+  </div>
+  <button class="btn btn-gold btn-full" id="ai-btn" onclick="runAI()">
+    <span>✦</span>&nbsp; Start AI-estimering
+  </button>
+  <div id="ai-results" style="display:none;margin-top:1.25rem">
+    <div class="ai-box">
+      <div class="ai-box-header"><h3>Estimert markedsleie — Lager</h3><span class="ai-badge">AI</span></div>
+      <div class="ai-box-body">
+        <div class="range-cards">
+          <div class="rc rc-low"><div class="rc-label">Lav</div><div class="rc-val" id="al-lav">—</div><div class="rc-unit">kr/m²/år</div></div>
+          <div class="rc rc-mid"><div class="rc-label">Middels</div><div class="rc-val" id="al-mid">—</div><div class="rc-unit">kr/m²/år</div></div>
+          <div class="rc rc-high"><div class="rc-label">Høy</div><div class="rc-val" id="al-hoy">—</div><div class="rc-unit">kr/m²/år</div></div>
+        </div>
+        <div class="ai-reasoning" id="al-reason"></div>
+        <div class="use-btns">
+          <button class="btn btn-secondary" onclick="useLeie('lav')">Bruk lav →</button>
+          <button class="btn btn-secondary" onclick="useLeie('mid')">Bruk middels →</button>
+          <button class="btn btn-secondary" onclick="useLeie('høy')">Bruk høy →</button>
+        </div>
+      </div>
+    </div>
+    <div class="ai-box">
+      <div class="ai-box-header"><h3>Estimert yield</h3><span class="ai-badge">AI</span></div>
+      <div class="ai-box-body">
+        <div class="range-cards">
+          <div class="rc rc-high"><div class="rc-label">Lav (komprimert)</div><div class="rc-val" id="ay-lav">—</div><div class="rc-unit" style="color:var(--info-text)">%</div></div>
+          <div class="rc rc-mid"><div class="rc-label">Middels</div><div class="rc-val" id="ay-mid">—</div><div class="rc-unit">%</div></div>
+          <div class="rc rc-low"><div class="rc-label">Høy (svak)</div><div class="rc-val" id="ay-hoy">—</div><div class="rc-unit">%</div></div>
+        </div>
+        <div class="ai-reasoning" id="ay-reason"></div>
+        <div class="use-btns">
+          <button class="btn btn-secondary" onclick="useYield('lav')">Bruk lav yield →</button>
+          <button class="btn btn-secondary" onclick="useYield('mid')">Bruk middels yield →</button>
+          <button class="btn btn-secondary" onclick="useYield('høy')">Bruk høy yield →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="btn-nav">
+    <button class="btn btn-secondary" onclick="goTo(0)">← Tilbake</button>
+    <button class="btn btn-primary" onclick="goTo(2)">Neste: Yield-modell →</button>
+  </div>
+</div>
+
+<div class="panel" id="p2">
+  <div class="info-box">Netto yield-metoden kapitaliserer stabilisert netto leieinntekt med en markedsmessig yield.</div>
+  <div class="card">
+    <div class="card-title">Leieinntekter og kostnader</div>
+    <div class="g3">
+      <div class="field"><label>Leie lager (kr/m²/år)</label><input type="number" id="leie_lager" value="850"></div>
+      <div class="field"><label>Leie kontor (kr/m²/år)</label><input type="number" id="leie_kontor" value="1400"></div>
+      <div class="field"><label>Ledighetsgrad (%)</label><input type="number" id="ledighet_y" value="3" step="0.5"></div>
+    </div>
+    <div class="g3">
+      <div class="field"><label>Eierkostnader (kr/m²/år)</label><input type="number" id="eierkost" value="120"></div>
+      <div class="field"><label>Vedlikehold (kr/m²/år)</label><input type="number" id="vedlikehold" value="80"></div>
+      <div class="field"><label>Forvaltning (% av leie)</label><input type="number" id="forvaltning" value="3" step="0.5"></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">Yield-parametere</div>
+    <div class="g2">
+      <div class="field"><label>Netto yield (%)</label><input type="number" id="yield_pct" value="6.0" step="0.25"></div>
+      <div class="field"><label>Stabilisert ledighet (%)</label><input type="number" id="stab_ledig" value="5" step="0.5"></div>
+    </div>
+  </div>
+  <button class="btn btn-primary btn-full" onclick="calcYield()">Beregn Yield-modell</button>
+  <div id="yield-result" style="display:none;margin-top:1.25rem">
+    <div class="result-hero">
+      <div class="result-eyebrow">Verdi — Yield-kapitalisering</div>
+      <div class="result-val" id="yr-val">—</div>
+      <div class="result-sub" id="yr-sub">—</div>
+    </div>
+    <div class="metrics3">
+      <div class="mc"><div class="mc-label">Brutto leieinntekt</div><div class="mc-val" id="yr-brutto">—</div></div>
+      <div class="mc"><div class="mc-label">Netto leieinntekt</div><div class="mc-val" id="yr-netto">—</div></div>
+      <div class="mc"><div class="mc-label">Pris per m²</div><div class="mc-val" id="yr-ppm">—</div></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Sensitivitetsanalyse — Yield × Leiefaktor</div>
+      <div class="sens-wrap" id="sens-yield"></div>
+    </div>
+  </div>
+  <div class="btn-nav">
+    <button class="btn btn-secondary" onclick="goTo(1)">← Tilbake</button>
+    <button class="btn btn-primary" onclick="goTo(3)">Neste: DCF-modell →</button>
+  </div>
+</div>
+
+<div class="panel" id="p3">
+  <div class="info-box">DCF-analysen diskonterer fremtidige kontantstrømmer over analyseperioden og legger til en exit-verdi. Nyttig ved varierende kontantstrømmer og restruktureringsscenarier.</div>
+  <div class="card">
+    <div class="card-title">Kontantstrømforutsetninger</div>
+    <div class="g3">
+      <div class="field"><label>Startnetto leieinntekt (kr/år)</label><input type="number" id="dcf_netto" value="4200000"></div>
+      <div class="field"><label>KPI-justering pr år (%)</label><input type="number" id="kpi" value="2.5" step="0.25"></div>
+      <div class="field"><label>Ledighetsrisiko (%)</label><input type="number" id="dcf_ledig" value="3" step="0.5"></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">Analyse- og diskonteringsparametere</div>
+    <div class="g3">
+      <div class="field"><label>Analyseperiode (år)</label><input type="number" id="analyse_ar" value="10"></div>
+      <div class="field"><label>Diskonteringsrente (%)</label><input type="number" id="disk_rente" value="7.5" step="0.25"></div>
+      <div class="field"><label>Exit yield (%)</label><input type="number" id="exit_yield" value="6.5" step="0.25"></div>
+    </div>
+    <div class="g2">
+      <div class="field"><label>Investeringskostnader år 0 (kr)</label><input type="number" id="inv_kost" value="0"></div>
+      <div class="field"><label>CAPEX år 5 (kr)</label><input type="number" id="capex5" value="0"></div>
+    </div>
+  </div>
+  <button class="btn btn-primary btn-full" onclick="calcDCF()">Beregn DCF-modell</button>
+  <div id="dcf-result" style="display:none;margin-top:1.25rem">
+    <div class="result-hero">
+      <div class="result-eyebrow">Verdi — DCF-analyse</div>
+      <div class="result-val" id="dr-val">—</div>
+      <div class="result-sub" id="dr-sub">—</div>
+    </div>
+    <div class="metrics3">
+      <div class="mc"><div class="mc-label">Nåverdi kontantstrøm</div><div class="mc-val" id="dr-pvcf">—</div></div>
+      <div class="mc"><div class="mc-label">Nåverdi exit</div><div class="mc-val" id="dr-pvexit">—</div></div>
+      <div class="mc"><div class="mc-label">Implisitt yield</div><div class="mc-val" id="dr-impyield">—</div></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Sensitivitetsanalyse — Diskonteringsrente × Exit yield</div>
+      <div class="sens-wrap" id="sens-dcf"></div>
+    </div>
+  </div>
+  <div class="btn-nav">
+    <button class="btn btn-secondary" onclick="goTo(2)">← Tilbake</button>
+    <button class="btn btn-primary" onclick="goTo(4)">Neste: Sammenlignbare →</button>
+  </div>
+</div>
+
+<div class="panel" id="p4">
+  <div class="info-box">Registrer sammenlignbare transaksjoner for lager/logistikkeiendom i regionen. Modellen beregner gjennomsnittlig pris pr m².</div>
+  <div class="card">
+    <div class="card-title">Transaksjonsregister</div>
+    <div class="comp-hdr">
+      <span>Eiendom</span><span>Areal m²</span><span>Pris mill kr</span><span>Yield %</span><span></span>
+    </div>
+    <div id="comp-list"></div>
+    <button class="btn btn-secondary" onclick="addComp()" style="margin-top:8px">+ Legg til transaksjon</button>
+  </div>
+  <button class="btn btn-primary btn-full" onclick="calcComp()">Beregn sammenlignbar verdi</button>
+  <div id="comp-result" style="display:none;margin-top:1.25rem">
+    <div class="result-hero">
+      <div class="result-eyebrow">Verdi — Sammenlignbare transaksjoner</div>
+      <div class="result-val" id="cr-val">—</div>
+      <div class="result-sub" id="cr-sub">—</div>
+    </div>
+    <div class="metrics3">
+      <div class="mc"><div class="mc-label">Gj.snitt pris/m²</div><div class="mc-val" id="cr-ppm">—</div></div>
+      <div class="mc"><div class="mc-label">Median yield</div><div class="mc-val" id="cr-yield">—</div></div>
+      <div class="mc"><div class="mc-label">Antall komparanter</div><div class="mc-val" id="cr-ant">—</div></div>
+    </div>
+  </div>
+  <div class="btn-nav">
+    <button class="btn btn-secondary" onclick="goTo(3)">← Tilbake</button>
+    <button class="btn btn-primary" onclick="goTo(5)">Neste: Dashboard →</button>
+  </div>
+</div>
+
+<div class="panel" id="p5">
+  <div id="dash-empty" class="info-box">Beregn minst én verdsettelsesmetode for å generere dashboard.</div>
+  <div id="dash-content" style="display:none">
+    <div class="dash-hero">
+      <div class="dash-label">Estimert markedsverdi</div>
+      <div class="dash-val" id="dash-val">—</div>
+      <div class="dash-range" id="dash-range">—</div>
+    </div>
+    <div class="kpi4">
+      <div class="kpi"><div class="kpi-label">Yield-modell</div><div class="kpi-val" id="kpi-yield">—</div><div class="kpi-sub">Netto yield-kap.</div></div>
+      <div class="kpi"><div class="kpi-label">DCF-modell</div><div class="kpi-val" id="kpi-dcf">—</div><div class="kpi-sub">Diskontert CF</div></div>
+      <div class="kpi"><div class="kpi-label">Sammenlignbare</div><div class="kpi-val" id="kpi-comp">—</div><div class="kpi-sub">Transaksjonsanalyse</div></div>
+      <div class="kpi"><div class="kpi-label">AI Markedsleie</div><div class="kpi-val" id="kpi-ai-leie">—</div><div class="kpi-sub">Middels estimat</div></div>
+    </div>
+    <div class="dash2">
+      <div class="card" style="margin:0">
+        <div class="card-title">AI-estimert markedsleie</div>
+        <div id="dash-leie"></div>
+      </div>
+      <div class="card" style="margin:0">
+        <div class="card-title">AI-estimert yield</div>
+        <div id="dash-yield-ai"></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Sammenlignbare transaksjoner</div>
+      <div id="dash-comps"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Vekting og sensitivitetsanalyse</div>
+      <div id="dash-weights" style="margin-bottom:1rem"></div>
+      <div class="sens-wrap" id="dash-sens"></div>
+    </div>
+  </div>
+  <div class="btn-nav">
+    <button class="btn btn-secondary" onclick="goTo(4)">← Tilbake</button>
+    <button class="btn btn-primary" onclick="buildDash()">Oppdater dashboard</button>
+    <button class="btn btn-primary" onclick="goTo(6)">Neste: Sammendrag →</button>
+  </div>
+</div>
+
+<div class="panel" id="p6">
+  <div class="info-box">AI genererer en profesjonell sammendragsrapport basert på all analyse. Tilpasset presentasjon for potensielle kunder og investorer.</div>
+  <button class="btn btn-gold btn-full" id="report-btn" onclick="genReport()">
+    <span>✦</span>&nbsp; Generer AI-sammendragsrapport
+  </button>
+  <div id="report-out" style="display:none;margin-top:1.25rem">
+    <div style="display:flex;justify-content:flex-end;margin-bottom:10px">
+      <button class="btn btn-secondary" onclick="window.print()">Skriv ut / Lagre PDF</button>
+    </div>
+    <div class="disclaimer">AI-generert analyse til intern bruk. Endelig verdivurdering forutsetter befaring og skriftlig rapport fra autorisert takstmann.</div>
+    <div class="report-card">
+      <div class="report-content" id="report-body"></div>
+    </div>
+  </div>
+  <div class="btn-nav" style="margin-top:1rem">
+    <button class="btn btn-secondary" onclick="goTo(5)">← Tilbake</button>
+  </div>
+</div>
+
+</main>
+
+>
+</body>
+</html>
